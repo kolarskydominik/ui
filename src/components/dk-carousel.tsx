@@ -112,7 +112,7 @@ export const DkCarousel = ({
         transition: all 0.2s ease-in-out;
 
         &:hover {
-          background-color: rgba(255, 255, 255, 0.5);
+          background-color: rgba(255, 255, 255, 0.7);
           backdrop-filter: blur(3px);
         }
 

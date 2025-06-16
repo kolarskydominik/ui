@@ -1,9 +1,10 @@
 import { DkCarousel } from './components/dk-carousel';
+import DkScrollableList from './components/dk-scrollable-list';
 
 const App = () => {
   return (
     <>
-      <main className="min-h-svh overflow-x-hidden overflow-y-auto bg-neutral-800 px-10!">
+      <main className="min-h-svh overflow-x-hidden overflow-y-auto bg-neutral-800 p-10!">
         <DkCarousel
           items={Array.from({ length: 10 }).map((_, i) => (
             <div key={i}>
@@ -12,6 +13,15 @@ const App = () => {
           ))}
           perView={2}
           gap={16}
+        />
+        <div className="h-10"></div>
+        <DkScrollableList
+          gap={16}
+          items={Array.from({ length: 10 }).map((_, i) => (
+            <div key={i} className="min-w-50">
+              <CanvasPlaceholder />
+            </div>
+          ))}
         />
       </main>
     </>
@@ -26,7 +36,8 @@ export function CanvasPlaceholder() {
     'Collection List content is not accessible to the carousel component in the editor. Run your project or visit the live website to view the carousel with CMS content.';
 
   return (
-    <div
+    <a
+      href="#"
       style={{
         display: 'flex',
         width: '100%',
@@ -63,6 +74,6 @@ export function CanvasPlaceholder() {
       >
         {subtitle}
       </p>
-    </div>
+    </a>
   );
 }

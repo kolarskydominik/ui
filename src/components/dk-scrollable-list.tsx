@@ -1,153 +1,26 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { type CSSProperties, useEffect, useRef, useState } from 'react';
-// .list-container {
-//   position: relative;
-//   width: 100%;
-//   max-width: 100%;
-//   height: auto;
-//   overflow: hidden;
-// }
-
-// /* Snap-align each direct child of the inner wrapper */
-// .list-container > div > * {
-//   scroll-snap-align: start;
-//   scroll-margin-left: 20px;
-// }
-
-// .list {
-//   padding-inline: 8px;
-//   display: flex;
-//   gap: 0;
-//   overflow-x: scroll;
-//   scroll-snap-type: x mandatory;
-//   -webkit-overflow-scrolling: touch;
-//   scrollbar-width: none;
-// }
-
-// /* Hide default scrollbar in WebKit browsers */
-// .list::-webkit-scrollbar {
-//   display: none;
-// }
-const ListContainer = styled('div', {
-  position: 'relative',
-  width: '100%',
-  maxWidth: '100%',
-  height: 'auto',
-  overflow: 'hidden',
-  '&>div>*': {
-    scrollSnapAlign: 'start',
-    scrollMarginLeft: 20,
-  },
-});
-
-const listStyle: CSSProperties = {
-  paddingInline: 8,
-  display: 'flex',
-  gap: 0,
-  overflowX: 'scroll',
-  scrollSnapType: 'x mandatory',
-  WebkitOverflowScrolling: 'touch',
-  scrollbarWidth: 'none',
-};
-
-const ScrollButton = ({
-  fadeColor,
-  direction,
-  isDisabled,
-  isVisible,
-  onClick,
-}: {
-  fadeColor: string;
-  direction: 'left' | 'right';
-  isDisabled: boolean;
-  isVisible: boolean;
-  onClick: (direction: 'left' | 'right') => void;
-}) => {
-  const Wrapper = styled('div', {
-    position: 'absolute',
-    display: 'grid',
-    alignItems: 'center',
-    paddingInline: 8,
-    insetBlock: 0,
-    width: '5rem',
-    background: `linear-gradient(90deg, ${fadeColor} 0%, rgba(0,0,0,0) 100%)`,
-
-    opacity: 1,
-    transitionProperty: 'all',
-    transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
-    transitionDuration: '300ms',
-    pointerEvents: isVisible ? 'auto' : 'none',
-
-    '&.left': {
-      left: 0,
-    },
-    '&.right': {
-      right: 0,
-      justifyItems: 'end',
-      transform: 'rotate(180deg)',
-    },
-    '&.hidden': {
-      opacity: 0,
-    },
-  });
-
-  const Button = styled('button', {
-    display: 'grid',
-    placeContent: 'center',
-    width: '3rem',
-    height: '3rem',
-    boxShadow: 'rgba(0, 0, 0, 0.35) 0px 5px 15px',
-    background: 'rgba(255, 255, 255, 0.3)',
-    backdropFilter: 'blur(8px)',
-    borderRadius: '4rem',
-    color: 'white',
-    border: 'none',
-    padding: 10,
-    cursor: 'pointer',
-    zIndex: 10,
-    fontSize: '2rem',
-    '&.hidden': {
-      opacity: 0,
-    },
-  });
-
-  return (
-    <Wrapper className={`${direction} ${isDisabled && 'hidden'}`}>
-      <Button
-        type="button"
-        name={`scroll-${direction}`}
-        onClick={() => onClick(direction)}
-        disabled={isDisabled}
-        className={!isVisible && 'hidden'}
-      >
-        <Chevron size={28} strokeWidth={2} />
-      </Button>
-    </Wrapper>
-  );
-};
+import { useEffect, useRef, useState } from 'react';
 
 type DkScrollableListProps = {
-  cmsCollection?: React.ReactNode;
-  isDesktop: boolean;
-  fadeColor: string;
-  itemsSpacing: number;
+  items: React.ReactNode;
+  isDesktop?: boolean;
+  fadeColor?: string;
+  fadeSize?: number;
+  gap?: number;
 };
 
 const DkScrollableList = ({
-  cmsCollection = null,
+  items,
   isDesktop = true,
-  fadeColor = 'black',
-  itemsSpacing = 0,
+  fadeColor = 'rgba(0, 0, 0)',
+  fadeSize = 40,
+  gap = 16,
   ...props
 }: DkScrollableListProps) => {
-  const listRef = useRef(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
   const [isScrollable, setIsScrollable] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
-
-  const isConnectedToCMS =
-    !!Array.isArray(cmsCollection) && cmsCollection.length > 0;
-  const showButtons = isDesktop;
 
   useEffect(() => {
     const updateArrows = () => {
@@ -157,7 +30,7 @@ const DkScrollableList = ({
         const canScroll = list.scrollWidth > list.clientWidth; // Check if scrolling is needed
         setIsScrollable(canScroll);
         if (canScroll) {
-          setCanScrollLeft(list.scrollLeft > 0);
+          setCanScrollLeft(list.scrollLeft > gap);
           setCanScrollRight(
             list.scrollLeft < list.scrollWidth - list.clientWidth,
           );
@@ -172,48 +45,104 @@ const DkScrollableList = ({
     listRef?.current?.addEventListener('scroll', updateArrows);
 
     return () => listRef?.current?.removeEventListener('scroll', updateArrows);
-  }, [cmsCollection]);
+  }, [items]);
 
-  const handleScroll = (direction) => {
-    const list = listRef?.current;
-    if (list) {
-      const scrollAmount = 150; // Adjust to match item width + gap
-      list.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth',
-      });
-    }
-  };
+  //
+  // const handleScrollOnNavigation = (direction: 'left' | 'right') => {
+  //   const list = listRef?.current;
+  //   if (list) {
+  //     const scrollAmount = 150; // Adjust to match item width + gap
+  //     list.scrollBy({
+  //       left: direction === 'left' ? -scrollAmount : scrollAmount,
+  //       behavior: 'smooth',
+  //     });
+  //   }
+  // };
+
+  const styles = `
+      section[data-dk="dk-scrollable-list"] {
+        position: relative;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        overflow: hidden;
+
+        --slide-spacing: ${gap}px;
+      }
+
+      div[data-dk="dk-scrollable-list-items"] {
+        display: flex;
+        gap: 0;
+        overflow-x: scroll;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        &::-webkit-scrollbar {
+          display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+
+        & > * {
+          scroll-snap-align: start;
+          scroll-margin-left: 0px;
+          margin-left: var(--slide-spacing);
+        }
+      }
+
+      .dk-scrollable-list-fade {
+        position: absolute;
+        display: grid;
+        align-items: center;
+        padding-inline: 8px;
+        inset-block: 0px;
+        width: ${fadeSize}px;
+        background: linear-gradient(90deg, ${fadeColor} 0%, rgba(0, 0, 0, 0) 100%);
+        opacity: 1;
+        transition-property: all;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 300ms;
+        pointer-events: none;
+
+        &.left {
+          left: 0;
+        }
+
+        &.right {
+          right: 0;
+          justify-items: end;
+          transform: rotate(180deg);
+        }
+        &.hidden {
+          opacity: 0;
+        }
+      }`;
 
   return (
-    <ListContainer>
-      {/* Items */}
-      {React.cloneElement(cmsCollection[0], {
-        ref: listRef,
-        style: { ...listStyle, paddingInline: inlinePadding },
-        className: '', // this is important
-      })}
+    <>
+      <style>{styles}</style>
 
-      {/* Buttons */}
-      {isScrollable && (
-        <>
-          <ScrollButton
-            direction={'left'}
-            onClick={handleScroll}
-            isDisabled={!canScrollLeft}
-            isVisible={isDesktop}
-            fadeColor={fadeColor}
-          />
-          <ScrollButton
-            direction={'right'}
-            onClick={handleScroll}
-            isDisabled={!canScrollRight}
-            isVisible={isDesktop}
-            fadeColor={fadeColor}
-          />
-        </>
-      )}
-    </ListContainer>
+      <section data-dk="dk-scrollable-list">
+        <div ref={listRef} data-dk="dk-scrollable-list-items">
+          {items}
+        </div>
+
+        {/* Fades */}
+        {isScrollable && (
+          <>
+            <div
+              className={`dk-scrollable-list-fade left ${!canScrollLeft ? 'hidden' : ''}`}
+            />
+            <div
+              className={`dk-scrollable-list-fade right ${!canScrollRight ? 'hidden' : ''}`}
+            />
+          </>
+        )}
+      </section>
+    </>
   );
 };
 
