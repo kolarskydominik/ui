@@ -1,35 +1,68 @@
-import './App.css';
-import { useState } from 'react';
-import viteLogo from '/vite.svg';
-import reactLogo from './assets/react.svg';
+import { DkCarousel } from './components/dk-carousel';
 
-function App() {
-  const [count, setCount] = useState(0);
-
+const App = () => {
   return (
     <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <main className="min-h-svh overflow-x-hidden overflow-y-auto bg-neutral-800 px-10!">
+        <DkCarousel
+          items={Array.from({ length: 10 }).map((_, i) => (
+            <div key={i}>
+              <CanvasPlaceholder />
+            </div>
+          ))}
+          perView={2}
+          gap={16}
+        />
+      </main>
     </>
   );
-}
+};
 
 export default App;
+
+export function CanvasPlaceholder() {
+  const title = 'Run project to view carousel content';
+  const subtitle =
+    'Collection List content is not accessible to the carousel component in the editor. Run your project or visit the live website to view the carousel with CMS content.';
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        width: '100%',
+        height: '100%',
+        placeContent: 'center',
+        placeItems: 'center',
+        flexDirection: 'column',
+        backgroundColor: 'rgba(136, 85, 255, 0.1)',
+        borderRadius: 6,
+        border: '1px dashed rgb(136, 85, 255)',
+        color: 'rgb(136, 85, 255)',
+        fontSize: 12,
+        padding: 24,
+      }}
+    >
+      <p
+        style={{
+          margin: 0,
+          marginBottom: 10,
+          fontWeight: 600,
+          textAlign: 'center',
+        }}
+      >
+        {title}
+      </p>
+      <p
+        style={{
+          margin: 0,
+          opacity: 0.7,
+          maxWidth: 500,
+          lineHeight: 1.5,
+          textAlign: 'center',
+        }}
+      >
+        {subtitle}
+      </p>
+    </div>
+  );
+}
