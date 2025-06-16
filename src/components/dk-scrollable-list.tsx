@@ -88,7 +88,7 @@ const DkScrollableList = ({
 
         & > * {
           scroll-snap-align: start;
-          scroll-margin-left: 0px;
+          scroll-margin-left: var(--slide-spacing);
           margin-left: var(--slide-spacing);
         }
       }
@@ -126,7 +126,7 @@ const DkScrollableList = ({
       <style>{styles}</style>
 
       <section data-dk="dk-scrollable-list">
-        <div ref={listRef} data-dk="dk-scrollable-list-items">
+        <div ref={listRef} data-dk="dk-scrollable-list-items" className="mx-6">
           {items}
         </div>
 
