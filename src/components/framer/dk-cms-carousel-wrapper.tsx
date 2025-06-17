@@ -8,16 +8,16 @@ Description: Used for custom carousel list
 
 import {
     addPropertyControls,
+    ControlType,
     // @ts-ignore
     getPropertyControls,
+    RenderTarget,
     // @ts-ignore
     useQueryData,
-    ControlType,
-    RenderTarget,
 } from "framer"
-import { cloneElement, Children, useRef, CSSProperties } from "react"
 import { motion } from "framer-motion"
 import { getCollectionData } from "https://framer.com/m/CMSLibrary-09eo.js"
+import { Children, cloneElement, CSSProperties,useRef } from "react"
 
 /**
  * @framerSupportedLayoutWidth any-prefer-fixed
@@ -269,7 +269,7 @@ function getCollectionListItems(collectionList) {
         const data = useQueryData(query)
 
         let children = []
-        let clChildren = childrenFunction(data)
+        const clChildren = childrenFunction(data)
         if (Array.isArray(clChildren)) {
             children = clChildren
         } else if (Array.isArray(clChildren?.props?.children?.[0])) {
@@ -413,7 +413,7 @@ export const DkCarousel = ({
     return (
         <>
             <style>{styles}</style>
-            <div data-dk="dk-carousel" className="backdrop-blur-lg">
+            <div data-dk="dk-carousel">
                 <div
                     ref={emblaRef}
                     data-dk="dk-carousel-viewport"
@@ -588,7 +588,7 @@ const DkScrollableList = ({
 
         & > * {
           scroll-snap-align: start;
-          scroll-margin-left: 0px;
+          scroll-margin-left: var(--slide-spacing);
           margin-left: var(--slide-spacing);
         }
       }

@@ -126,7 +126,7 @@ const DkScrollableList = ({
       <style>{styles}</style>
 
       <section data-dk="dk-scrollable-list">
-        <div ref={listRef} data-dk="dk-scrollable-list-items" className="mx-6">
+        <div ref={listRef} data-dk="dk-scrollable-list-items">
           {items}
         </div>
 

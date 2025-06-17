@@ -124,7 +124,7 @@ export const DkCarousel = ({
   return (
     <>
       <style>{styles}</style>
-      <div data-dk="dk-carousel" className="backdrop-blur-lg">
+      <div data-dk="dk-carousel">
         <div
           ref={emblaRef}
           data-dk="dk-carousel-viewport"
