@@ -18,10 +18,10 @@ const URLStatusTracker = () => {
   const [emojiDescriptions, setEmojiDescriptions] = useState<
     EmojiDescriptionType[]
   >([
-    { emoji: '✅', description: 'Working correctly' },
-    { emoji: '📅', description: 'Date input needs calendar update' },
-    { emoji: '🚧', description: 'Domain issues or 404 errors' },
-    { emoji: '🪫', description: 'No availability in dates' },
+    { emoji: '✅', description: 'Was able to /create-checkout-session = open Stripe Iframe' },
+    { emoji: '📅', description: 'I need to update the Date type input to show a calendar; it currently has a plain string inpu' },
+    { emoji: '🚧', description: 'tickadoo.com domain throws 404 cc: @Rohan' },
+    { emoji: '🪫', description: 'Dates from /dates has no availability in /day cc: @Tom' },
   ]);
   const [newUrl, setNewUrl] = useState('');
   const [newEmoji, setNewEmoji] = useState('');
