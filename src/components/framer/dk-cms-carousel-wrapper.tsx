@@ -1,7 +1,7 @@
 /*
 Created: Dom | 2025-06-16
 
-Last updated: Dom | 2025-06-16
+Last updated: Dom | 2025-06-17
 
 Description: Used for custom carousel list
 */
@@ -17,7 +17,7 @@ import {
 } from "framer"
 import { motion } from "framer-motion"
 import { getCollectionData } from "https://framer.com/m/CMSLibrary-09eo.js"
-import { Children, cloneElement, CSSProperties,useRef } from "react"
+import { Children, cloneElement, CSSProperties, useRef } from "react"
 
 /**
  * @framerSupportedLayoutWidth any-prefer-fixed
@@ -412,7 +412,8 @@ export const DkCarousel = ({
 
     return (
         <>
-            <style>{styles}</style>
+            <style dangerouslySetInnerHTML={{ __html: styles }} />
+
             <div data-dk="dk-carousel">
                 <div
                     ref={emblaRef}
@@ -623,7 +624,7 @@ const DkScrollableList = ({
 
     return (
         <>
-            <style>{styles}</style>
+            <style dangerouslySetInnerHTML={{ __html: styles }} />
 
             <section data-dk="dk-scrollable-list">
                 <div ref={listRef} data-dk="dk-scrollable-list-items">

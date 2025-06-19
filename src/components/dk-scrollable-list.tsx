@@ -123,7 +123,7 @@ const DkScrollableList = ({
 
   return (
     <>
-      <style>{styles}</style>
+      <style dangerouslySetInnerHTML={{ __html: styles }} />
 
       <section data-dk="dk-scrollable-list">
         <div ref={listRef} data-dk="dk-scrollable-list-items">

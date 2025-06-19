@@ -123,7 +123,8 @@ export const DkCarousel = ({
 
   return (
     <>
-      <style>{styles}</style>
+      <style dangerouslySetInnerHTML={{ __html: styles }} />
+
       <div data-dk="dk-carousel">
         <div
           ref={emblaRef}
