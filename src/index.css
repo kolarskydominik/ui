@@ -1,7 +1,10 @@
-@layer theme, base, components, utilities;
-@import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/utilities.css" layer(utilities);
+@config "../tailwind.config.js";
+@import "tailwindcss";
 
+/* @layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities); */
+/* 
 *,
 ::after,
 ::before,
@@ -10,6 +13,4 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-}
-
-
+} */

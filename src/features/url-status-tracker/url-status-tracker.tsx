@@ -127,8 +127,11 @@ const URLStatusTracker = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="mx-auto max-w-6xl">
+    <section
+      className="mx-auto flex min-h-screen flex-1 items-center justify-center bg-gradient-to-br
+        from-blue-50 to-indigo-100 p-4 font-sans"
+    >
+      <div className="max-w-screen-xl">
         <div className="rounded-2xl bg-white p-8 shadow-xl">
           <div className="mb-8 text-center">
             <h1 className="mb-2 text-4xl font-bold text-gray-800">
@@ -338,7 +341,7 @@ const URLStatusTracker = () => {
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 };
 
