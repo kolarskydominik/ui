@@ -1,92 +1,128 @@
 /*
-Created: Dom | 2025-06-02
+Created: Dom | 2025-06-16
 
-Last updated: Dom | 2025-06-02
+Last updated: Dom | 2025-06-24
 
 Description: Used for custom carousel list
 */
 
-import React, {
-    CSSProperties,
-    useRef,
-    useState,
-    useEffect,
-    Children,
-    useCallback,
-} from "react"
-import { addPropertyControls, ControlType, RenderTarget } from "framer"
-
-import useEmblaCarousel from "embla-carousel-react"
-import { styled } from "@stitches/react"
+import {
+    addPropertyControls,
+    ControlType,
+    // @ts-ignore
+    getPropertyControls,
+    RenderTarget,
+    // @ts-ignore
+    useQueryData,
+} from "framer"
+import { motion } from "framer-motion"
+import { getCollectionData } from "https://framer.com/m/CMSLibrary-09eo.js"
+import { Children, cloneElement, CSSProperties, useRef } from "react"
 
 /**
- * These annotations control how your component sizes
- * Learn more: https://www.framer.com/developers/components/auto-sizing
- *
- * @framerSupportedLayoutWidth fixed
- * @framerSupportedLayoutHeight auto
+ * @framerSupportedLayoutWidth any-prefer-fixed
+ * @framerSupportedLayoutHeight any-prefer-fixed
+ * @framerIntrinsicWidth 600
+ * @framerIntrinsicHeight 400
  */
 
-export default function HOC_ListCarousel(props) {
+export default function CMSCarouselWrapper(props) {
     const {
-        cmsCollection,
+        startLayers,
+        endLayers,
+        itemsPerView,
+        itemsGap,
         isDesktop,
-        perView,
-        fadeColor,
-        inlinePadding,
+        fade,
         chevron,
         ...otherProps
     } = props
+    console.log(props)
     const isCanvas = RenderTarget.current() === RenderTarget.canvas
-    const isConnectedToCMS = !!cmsCollection[0]
 
-    const items = isConnectedToCMS
-        ? React.cloneElement(cmsCollection[0], {
-              className: "dk-carousel-slides", // IMPORTANT: for CSS
-          })
-        : null
+    const items = isCanvas
+        ? []
+        : getCollectionListItems(props.collectionList?.[0])
 
-    if (items && isCanvas) return <IsCanvasUI />
-    else if (items && isDesktop)
+    // layers to display
+    let layers = []
+
+    if (startLayers) {
+        layers = layers.concat(startLayers)
+    }
+
+    if (!isCanvas) {
+        for (let i = 0; i < items.length; i++) {
+            layers.push(items[i].props.children.props.children)
+        }
+    } else {
+        for (let i = 0; i < itemsPerView + 1; i++) {
+            layers.push(
+                <CanvasPlaceholder
+                    title="Run project to view carousel content"
+                    subtitle="Collection List content is not accessible to the carousel component in the editor. Run your project or visit the live website to view the carousel with CMS content."
+                    style={
+                        !isDesktop && {
+                            minWidth: 250,
+                        }
+                    }
+                />
+            )
+        }
+    }
+
+    if (endLayers) {
+        layers = layers.concat(endLayers)
+    }
+
+    const slots = layers.map((layer) => <div>{layer}</div>)
+
+    if (isDesktop)
         return (
-            <ListCarousel
-                perView={perView}
-                inlinePadding={inlinePadding}
+            <DkCarousel
+                items={slots}
+                perView={itemsPerView}
+                gap={itemsGap}
                 chevron={chevron}
-            >
-                {items}
-            </ListCarousel>
-        )
-    else if (items && !isDesktop)
-        return (
-            <ScrollableCollectionList
-                inlinePadding={inlinePadding}
-                cmsCollection={cmsCollection}
-                isDesktop={isDesktop}
-                fadeColor={fadeColor}
             />
         )
-    else <EmptyListState />
+    return (
+        <DkScrollableList
+            items={slots}
+            gap={itemsGap}
+            fadeColor={fade.fadeColor}
+            fadeSize={fade.fadeSize}
+        />
+    )
 }
 
-addPropertyControls(HOC_ListCarousel, {
+CMSCarouselWrapper.displayName = "DK CMS Carousel Wrapper"
+
+addPropertyControls(CMSCarouselWrapper, {
+    collectionList: {
+        type: ControlType.Slot,
+    },
+    startLayers: {
+        type: ControlType.Slot,
+        title: "Start",
+    },
+    endLayers: {
+        type: ControlType.Slot,
+        title: "End",
+    },
     isDesktop: {
         type: ControlType.Enum,
-        title: "Breakpoint Variant",
-        description: "Desktop: default 4 cards \nMobile: Scrollable list",
+        title: "Variant",
+        description: "Desktop: Carousel \nMobile: Scrollable list",
         displaySegmentedControl: true,
         segmentedControlDirection: "vertical",
         options: [true, false],
         optionTitles: ["Desktop", "Mobile"],
         defaultValue: true,
     },
-    cmsCollection: {
-        type: ControlType.Slot,
-        title: "CMS Collection List",
-    },
-    perView: {
+    itemsPerView: {
         type: ControlType.Number,
-        title: "Items per view",
+        title: "Items in view",
         defaultValue: 4,
         min: 1,
         max: 6,
@@ -94,26 +130,44 @@ addPropertyControls(HOC_ListCarousel, {
         displayStepper: true,
         preventLocalization: false,
     },
-    fadeColor: {
-        type: ControlType.Color,
-        title: "Background color",
-        description:
-            "Set this so that the fades are the same color as the background",
-        defaultValue: "rgb(18,18,18)",
-    },
-    inlinePadding: {
+    itemsGap: {
         type: ControlType.Number,
-        title: "Inline Padding of Desktop",
-        defaultValue: 24,
+        title: "Items gap",
+        defaultValue: 16,
         min: 0,
-        max: 100,
+        max: 64,
         step: 1,
         displayStepper: true,
         preventLocalization: false,
     },
+    fade: {
+        type: ControlType.Object,
+        description: "Only for Mobile Variant",
+        controls: {
+            fadeColor: {
+                type: ControlType.Color,
+                title: "Fade/BG Color",
+                defaultValue: "#0F1014",
+                preventLocalization: false,
+            },
+            fadeSize: {
+                type: ControlType.Number,
+                defaultValue: 80,
+                min: 0,
+                step: 1,
+                displayStepper: true,
+                preventLocalization: false,
+            },
+        },
+    },
     chevron: {
         type: ControlType.Object,
+        description: "Only for Desktop Variant",
         controls: {
+            show: {
+                type: ControlType.Boolean,
+                defaultValue: true,
+            },
             size: {
                 type: ControlType.Number,
                 title: "Size",
@@ -123,37 +177,149 @@ addPropertyControls(HOC_ListCarousel, {
                 step: 1,
                 displayStepper: true,
                 preventLocalization: false,
+                hidden(props) {
+                    return !props.show
+                },
             },
             inlinePosition: {
                 type: ControlType.Number,
                 title: "Inline Inset Position",
-                defaultValue: 8,
-                min: 0,
+                defaultValue: -22,
+                min: -100,
                 max: 100,
                 step: 1,
                 displayStepper: true,
                 preventLocalization: false,
+                hidden(props) {
+                    return !props.show
+                },
             },
             topPosition: {
                 type: ControlType.String,
                 title: "Top Position",
                 description: "Need to includes unit (eg. 200px, 50%, ...",
-                defaultValue: "200px",
+                defaultValue: "50%",
                 preventLocalization: false,
+                hidden(props) {
+                    return !props.show
+                },
             },
         },
     },
 })
 
-// DESKTOP VARIANT
-export const ListCarousel = ({ perView, inlinePadding, children, chevron }) => {
+type CanvasPlaceholderType = {
+    title?: string
+    subtitle?: string
+    style?: CSSProperties
+}
+
+const CanvasPlaceholder = ({
+    title,
+    subtitle,
+    style,
+}: CanvasPlaceholderType) => {
+    return (
+        <div
+            style={{
+                display: "flex",
+                width: "100%",
+                height: "100%",
+                placeContent: "center",
+                placeItems: "center",
+                flexDirection: "column",
+                backgroundColor: "rgba(136, 85, 255, 0.1)",
+                borderRadius: 6,
+                border: "1px dashed rgb(136, 85, 255)",
+                color: "rgb(136, 85, 255)",
+                fontSize: 12,
+                padding: 24,
+                ...style,
+            }}
+        >
+            <p
+                style={{
+                    margin: 0,
+                    marginBottom: 10,
+                    fontWeight: 600,
+                    textAlign: "center",
+                }}
+            >
+                {title}
+            </p>
+            <p
+                style={{
+                    margin: 0,
+                    opacity: 0.7,
+                    maxWidth: 500,
+                    lineHeight: 1.5,
+                    textAlign: "center",
+                }}
+            >
+                {subtitle}
+            </p>
+        </div>
+    )
+}
+
+function getCollectionListItems(collectionList) {
+    const { query, childrenFunction } = getCollectionData(collectionList)
+
+    if (query && childrenFunction) {
+        const data = useQueryData(query)
+
+        let children = []
+        const clChildren = childrenFunction(data)
+        if (Array.isArray(clChildren)) {
+            children = clChildren
+        } else if (Array.isArray(clChildren?.props?.children?.[0])) {
+            children = clChildren.props.children[0]
+        } else if (Array.isArray(clChildren?.props?.children)) {
+            children = clChildren.props.children
+        }
+
+        if (children) {
+            return Children.toArray(children)
+        }
+    }
+
+    return []
+}
+
+// =================== Carousel
+import useEmblaCarousel from "embla-carousel-react"
+import { useCallback, useEffect, useState } from "react"
+
+type DkCarouselProps = {
+    perView: number
+    gap: number
+    chevron?: {
+        show: boolean
+        size: number
+        inlinePosition: number
+        topPosition: string
+    }
+    items: React.ReactNode
+}
+
+export const DkCarousel = ({
+    perView = 4,
+    gap = 16,
+    items,
+    chevron = {
+        show: true,
+        size: 44,
+        inlinePosition: -22,
+        topPosition: "50%",
+    },
+}: DkCarouselProps) => {
     const [emblaRef, emblaApi] = useEmblaCarousel({
         align: "start",
         slidesToScroll: perView,
         containScroll: "trimSnaps",
     })
-    const [prevBtnEnabled, setPrevBtnEnabled] = useState(false)
-    const [nextBtnEnabled, setNextBtnEnabled] = useState(false)
+    const [prevEnabled, setPrevEnabled] = useState(false)
+    const [nextEnabled, setNextEnabled] = useState(false)
 
     const scrollPrev = useCallback(
         () => emblaApi && emblaApi.scrollPrev(),
@@ -166,8 +332,8 @@ export const ListCarousel = ({ perView, inlinePadding, children, chevron }) => {
 
     const onSelect = useCallback(() => {
         if (!emblaApi) return
-        setPrevBtnEnabled(emblaApi.canScrollPrev())
-        setNextBtnEnabled(emblaApi.canScrollNext())
+        setPrevEnabled(emblaApi.canScrollPrev())
+        setNextEnabled(emblaApi.canScrollNext())
     }, [emblaApi])
 
     useEffect(() => {
@@ -181,139 +347,119 @@ export const ListCarousel = ({ perView, inlinePadding, children, chevron }) => {
         }
     }, [emblaApi, onSelect])
 
-    return (
-        <ListCarouselContainer
-            className="dk-carousel-container"
-            css={{ paddingInline: inlinePadding }}
-        >
-            <ListCarouselViewport
-                ref={emblaRef}
-                className="dk-carousel-viewport"
-                perView={perView}
-            >
-                {children}
-            </ListCarouselViewport>
+    const styles = `
+      [data-dk="dk-carousel"] {
+        position: relative;
+        width: 100%;
 
-            {/* Navigation buttons */}
-            <PrevButton
-                onClick={scrollPrev}
-                disabled={!prevBtnEnabled}
-                css={{
-                    top: chevron.topPosition,
-                    left: chevron.inlinePosition,
-                    width: chevron.size,
-                    height: chevron.size,
-                }}
-            >
-                <Chevron />
-            </PrevButton>
-            <NextButton
-                onClick={scrollNext}
-                disabled={!nextBtnEnabled}
-                css={{
-                    top: chevron.topPosition,
-                    right: chevron.inlinePosition,
-                    width: chevron.size,
-                    height: chevron.size,
-                }}
-            >
-                <Chevron direction={"right"} />
-            </NextButton>
-        </ListCarouselContainer>
+        --slide-size: calc(100% / ${perView});
+        --slide-spacing: ${gap}px;
+      }
+
+      [data-dk="dk-carousel-viewport"] {
+        width: 100%;
+        overflow: hidden;
+      }
+
+      [data-dk="dk-carousel-slides"] {
+        backface-visibility: hidden;
+        display: flex;
+        touch-action: pan-y pinch-zoom;
+        margin-left: calc(var(--slide-spacing) * -1);
+      }
+
+      [data-dk="dk-carousel-slides"] > * {
+        min-width: 0;
+        flex: 0 0 var(--slide-size);
+        padding-left: var(--slide-spacing);
+      }
+
+      [data-dk="dk-carousel-slides"] > * > *,
+      [data-dk="dk-carousel-slides"] > * > * > *,
+      [data-dk="dk-carousel-slides"] > * > * > * > * {
+        width: 100% !important;
+        height: 100%;
+      }
+
+      [data-dk="dk-carousel-button"] {
+        all: unset;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        color: black;
+        background-color: white;
+        border: none;
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        transition: all 0.2s ease-in-out;
+
+        &:hover {
+          background-color: rgba(255, 255, 255, 0.7);
+          backdrop-filter: blur(3px);
+        }
+
+        &:disabled {
+          visibility: hidden;
+        }
+      }`
+
+    return (
+        <>
+            <style dangerouslySetInnerHTML={{ __html: styles }} />
+
+            <div data-dk="dk-carousel">
+                <div
+                    ref={emblaRef}
+                    data-dk="dk-carousel-viewport"
+                    data-per-view={perView}
+                >
+                    <div data-dk="dk-carousel-slides">{items}</div>
+                </div>
+
+                {/* Navigation buttons */}
+                <button
+                    title="Previous"
+                    data-dk="dk-carousel-button"
+                    onClick={scrollPrev}
+                    disabled={!prevEnabled}
+                    style={{
+                        display: chevron?.show ? "flex" : "none",
+                        top: chevron?.topPosition,
+                        left: chevron?.inlinePosition,
+                        width: chevron?.size,
+                        height: chevron?.size,
+                    }}
+                >
+                    <Chevron />
+                </button>
+                <button
+                    title="Next"
+                    data-dk="dk-carousel-button"
+                    onClick={scrollNext}
+                    disabled={!nextEnabled}
+                    style={{
+                        display: chevron?.show ? "flex" : "none",
+                        top: chevron?.topPosition,
+                        right: chevron?.inlinePosition,
+                        width: chevron?.size,
+                        height: chevron?.size,
+                    }}
+                >
+                    <Chevron direction={"right"} />
+                </button>
+            </div>
+        </>
     )
 }
-ListCarousel.displayName = "ListCarousel"
 
-// =============================== Styled components
-const ListCarouselContainer = styled("div", {
-    position: "relative",
-    width: "100%",
-    paddingInline: 24,
-    //maxWidth: 1040, // Set the maximum width of the carousel
-})
-
-const ListCarouselViewport = styled("div", {
-    width: "100%",
-    overflow: "hidden", // IMPORTANT: need to be hidden to work
-    "& .dk-carousel-slides": {
-        width: "100% !important",
-        display: "flex",
-        // IMPORTANT: this dictate styles for each item
-        "&>*": {
-            position: "relative",
-            flexShrink: "0",
-            width: "25% !important", //IMPORTANT:
-            //padding: 8,
-
-            "&>*, &>*>*": {
-                width: "100% !important",
-            },
-        },
-    },
-
-    variants: {
-        perView: {
-            2: {
-                "& .dk-carousel-slides>*": {
-                    width: "50% !important",
-                },
-            },
-            3: {
-                "& .dk-carousel-slides>*": {
-                    width: "calc(100%/3) !important",
-                },
-            },
-            4: {
-                "& .dk-carousel-slides>*": {
-                    width: "25% !important",
-                },
-            },
-            5: {
-                "& .dk-carousel-slides>*": {
-                    width: "20% !important",
-                },
-            },
-            6: {
-                "& .dk-carousel-slides>*": {
-                    width: "calc(100%/6) !important",
-                },
-            },
-        },
-    },
-})
-
-const Button = styled("button", {
-    position: "absolute",
-    top: 200,
-    transform: "translateY(-50%)",
-    color: "black",
-    backgroundColor: "white",
-    border: "none",
-    borderRadius: "50%",
-    width: 44,
-    height: 44,
-    aspectRatio: "1",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    cursor: "pointer",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
-    "&:disabled": {
-        visibility: "hidden",
-        cursor: "not-allowed",
-    },
-    "&:hover:not(:disabled)": {
-        backgroundColor: "rgba(255,255,255,0.8)",
-    },
-})
-
-const PrevButton = styled(Button, {
-    left: 8,
-})
-
-const NextButton = styled(Button, {
-    right: 8,
-})
+DkCarousel.displayName = "DK CMS Carousel"
 
 const Chevron = ({
     direction = "left",
@@ -354,82 +500,37 @@ const Chevron = ({
     )
 }
 
-// =============================== EmptyListState
-const Wrapper = styled("div", {
-    display: "flex",
-    flexDirection: "column",
-    minWidth: "100%",
-    minHeight: 200,
-    justifyContent: "center",
-    alignItems: "center",
-    color: "rgb(153, 102, 255)",
-    background: "rgba(136, 85, 255, 0.1)",
-    padding: "20px 20px 30px",
-})
-
-const Title = styled("p", {
-    fontWeight: 600,
-    textAlign: "center",
-})
-
-const SubTitle = styled("p", {
-    margin: 0,
-    opacity: 0.7,
-    maxWidth: 130,
-    linHeight: 1.5,
-    textAlign: "center",
-})
-
-const EmptyListState = () => {
-    return (
-        <Wrapper>
-            <div style={{ fontSize: "2rem" }}>✨</div>
-            <Title>Connect to Content</Title>
-            <SubTitle>Add CMS Collection to swipe between.</SubTitle>
-        </Wrapper>
-    )
+// ============= Scrollable List
+type DkScrollableListProps = {
+    items: React.ReactNode
+    isDesktop?: boolean
+    fadeColor?: string
+    fadeSize?: number
+    gap?: number
 }
 
-// =============================== EmptyListState
-function IsCanvasUI() {
-    return (
-        <Wrapper>
-            <div style={{ fontSize: "2rem" }}>✨</div>
-            <Title>Run project to view carousel content</Title>
-            <SubTitle style={{ maxWidth: 600 }}>
-                Collection List content is not accessible to the carousel
-                component in the editor. Run your project or visit the live
-                website to view the carousel with CMS content.
-            </SubTitle>
-        </Wrapper>
-    )
-}
-
-// =============================== EmptyListState
-const ScrollableCollectionList = ({
-    cmsCollection,
-    isDesktop,
-    fadeColor,
-    inlinePadding,
+const DkScrollableList = ({
+    items,
+    isDesktop = true,
+    fadeColor = "rgba(0, 0, 0)",
+    fadeSize = 40,
+    gap = 16,
     ...props
-}) => {
-    const listRef = useRef(null)
+}: DkScrollableListProps) => {
+    const listRef = useRef<HTMLDivElement | null>(null)
     const [isScrollable, setIsScrollable] = useState(false)
-
     const [canScrollLeft, setCanScrollLeft] = useState(false)
     const [canScrollRight, setCanScrollRight] = useState(false)
-
-    const isConnectedToCMS = !!cmsCollection[0]
-    //const isComponentList = !!componentList[0]
 
     useEffect(() => {
         const updateArrows = () => {
             const list = listRef?.current
+
             if (list) {
                 const canScroll = list.scrollWidth > list.clientWidth // Check if scrolling is needed
                 setIsScrollable(canScroll)
                 if (canScroll) {
-                    setCanScrollLeft(list.scrollLeft > 0)
+                    setCanScrollLeft(list.scrollLeft > gap)
                     setCanScrollRight(
                         list.scrollLeft < list.scrollWidth - list.clientWidth
                     )
@@ -445,169 +546,103 @@ const ScrollableCollectionList = ({
 
         return () =>
             listRef?.current?.removeEventListener("scroll", updateArrows)
-    }, [cmsCollection])
+    }, [items])
 
-    const handleScroll = (direction) => {
-        const list = listRef?.current
-        if (list) {
-            const scrollAmount = 150 // Adjust to match item width + gap
-            list.scrollBy({
-                left: direction === "left" ? -scrollAmount : scrollAmount,
-                behavior: "smooth",
-            })
+    //
+    // const handleScrollOnNavigation = (direction: 'left' | 'right') => {
+    //   const list = listRef?.current;
+    //   if (list) {
+    //     const scrollAmount = 150; // Adjust to match item width + gap
+    //     list.scrollBy({
+    //       left: direction === 'left' ? -scrollAmount : scrollAmount,
+    //       behavior: 'smooth',
+    //     });
+    //   }
+    // };
+
+    const styles = `
+      section[data-dk="dk-scrollable-list"] {
+        position: relative;
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        overflow: hidden;
+
+        --slide-spacing: ${gap}px;
+      }
+
+      div[data-dk="dk-scrollable-list-items"] {
+        display: flex;
+        gap: 0;
+        overflow-x: scroll;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        &::-webkit-scrollbar {
+          display: none;
         }
-    }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+
+        & > * {
+          scroll-snap-align: start;
+          scroll-margin-left: var(--slide-spacing);
+          margin-left: var(--slide-spacing);
+        }
+      }
+
+      .dk-scrollable-list-fade {
+        position: absolute;
+        display: grid;
+        align-items: center;
+        padding-inline: 8px;
+        inset-block: 0px;
+        width: ${fadeSize}px;
+        background: linear-gradient(90deg, ${fadeColor} 0%, rgba(0, 0, 0, 0) 100%);
+        opacity: 1;
+        transition-property: all;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        transition-duration: 300ms;
+        pointer-events: none;
+
+        &.left {
+          left: 0;
+        }
+
+        &.right {
+          right: 0;
+          justify-items: end;
+          transform: rotate(180deg);
+        }
+        &.hidden {
+          opacity: 0;
+        }
+      }`
 
     return (
-        <ListContainer>
-            {/* Items */}
-            {React.cloneElement(cmsCollection[0], {
-                ref: listRef,
-                style: { ...listStyle, paddingInline: inlinePadding },
-                className: "", // this is important
-            })}
+        <>
+            <style dangerouslySetInnerHTML={{ __html: styles }} />
 
-            {/* Buttons */}
-            {isScrollable && (
-                <>
-                    <ScrollButton
-                        direction={"left"}
-                        onClick={handleScroll}
-                        isDisabled={!canScrollLeft}
-                        isVisible={isDesktop}
-                        fadeColor={fadeColor}
-                    />
-                    <ScrollButton
-                        direction={"right"}
-                        onClick={handleScroll}
-                        isDisabled={!canScrollRight}
-                        isVisible={isDesktop}
-                        fadeColor={fadeColor}
-                    />
-                </>
-            )}
-        </ListContainer>
-    )
-}
+            <section data-dk="dk-scrollable-list">
+                <div ref={listRef} data-dk="dk-scrollable-list-items">
+                    {items}
+                </div>
 
-addPropertyControls(ScrollableCollectionList, {
-    cmsCollection: {
-        type: ControlType.ComponentInstance,
-        title: "CMS Collection List",
-    },
-    isDesktop: {
-        type: ControlType.Enum,
-        title: "Breakpoint",
-        description: "For Mobile option it hides arrow controls",
-        displaySegmentedControl: true,
-        segmentedControlDirection: "horizontal",
-        options: [true, false],
-        optionTitles: ["Desktop", "Mobile"],
-        defaultValue: true,
-    },
-    fadeColor: {
-        type: ControlType.Color,
-        title: "Background color",
-        description:
-            "Set this so that the fades are the same color as the background",
-        defaultValue: "rgb(18,18,18)",
-    },
-})
-
-const ListContainer = styled("div", {
-    position: "relative",
-    width: "100%",
-    maxWidth: "100%",
-    height: "auto",
-    overflow: "hidden",
-    "&>div>*": {
-        scrollSnapAlign: "start",
-        scrollMarginLeft: 20,
-    },
-})
-
-const listStyle: CSSProperties = {
-    paddingInline: 8,
-    display: "flex",
-    gap: 0,
-    overflowX: "scroll",
-    scrollSnapType: "x mandatory",
-    WebkitOverflowScrolling: "touch",
-    scrollbarWidth: "none",
-}
-
-const ScrollButton = ({
-    fadeColor,
-    direction,
-    isDisabled,
-    isVisible,
-    onClick,
-}: {
-    fadeColor: string
-    direction: "left" | "right"
-    isDisabled: boolean
-    isVisible: boolean
-    onClick: (direction: "left" | "right") => void
-}) => {
-    const Wrapper = styled("div", {
-        position: "absolute",
-        display: "grid",
-        alignItems: "center",
-        paddingInline: 8,
-        insetBlock: 0,
-        width: "5rem",
-        background: `linear-gradient(90deg, ${fadeColor} 0%, rgba(0,0,0,0) 100%)`,
-
-        opacity: 1,
-        transitionProperty: "all",
-        transitionTimingFunction: "cubic-bezier(0.4, 0, 0.2, 1)",
-        transitionDuration: "300ms",
-        pointerEvents: isVisible ? "auto" : "none",
-
-        "&.left": {
-            left: 0,
-        },
-        "&.right": {
-            right: 0,
-            justifyItems: "end",
-            transform: "rotate(180deg)",
-        },
-        "&.hidden": {
-            opacity: 0,
-        },
-    })
-
-    const Button = styled("button", {
-        display: "grid",
-        placeContent: "center",
-        width: "3rem",
-        height: "3rem",
-        boxShadow: "rgba(0, 0, 0, 0.35) 0px 5px 15px",
-        background: "rgba(255, 255, 255, 0.3)",
-        backdropFilter: "blur(8px)",
-        borderRadius: "4rem",
-        color: "white",
-        border: "none",
-        padding: 10,
-        cursor: "pointer",
-        zIndex: 10,
-        fontSize: "2rem",
-        "&.hidden": {
-            opacity: 0,
-        },
-    })
-
-    return (
-        <Wrapper className={`${direction} ${isDisabled && "hidden"}`}>
-            <Button
-                type="button"
-                name={`scroll-${direction}`}
-                onClick={() => onClick(direction)}
-                disabled={isDisabled}
-                className={!isVisible && "hidden"}
-            >
-                <Chevron size={28} strokeWidth={2} />
-            </Button>
-        </Wrapper>
+                {/* Fades */}
+                {isScrollable && (
+                    <>
+                        <div
+                            className={`dk-scrollable-list-fade left ${!canScrollLeft ? "hidden" : ""}`}
+                        />
+                        <div
+                            className={`dk-scrollable-list-fade right ${!canScrollRight ? "hidden" : ""}`}
+                        />
+                    </>
+                )}
+            </section>
+        </>
     )
 }
