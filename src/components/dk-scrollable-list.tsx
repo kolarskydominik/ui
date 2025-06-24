@@ -91,6 +91,10 @@ const DkScrollableList = ({
           scroll-margin-left: var(--slide-spacing);
           margin-left: var(--slide-spacing);
         }
+
+        & > *:last-child {
+          margin-right: var(--slide-spacing);
+        }
       }
 
       .dk-scrollable-list-fade {
