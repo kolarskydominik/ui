@@ -1,7 +1,7 @@
 /*
 Created: Dom | 2025-06-16
 
-Last updated: Dom | 2025-06-17
+Last updated: Dom | 2025-06-24
 
 Description: Used for custom carousel list
 */
@@ -184,7 +184,7 @@ addPropertyControls(CMSCarouselWrapper, {
             inlinePosition: {
                 type: ControlType.Number,
                 title: "Inline Inset Position",
-                defaultValue: 0,
+                defaultValue: -22,
                 min: -100,
                 max: 100,
                 step: 1,
