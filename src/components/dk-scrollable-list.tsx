@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type DkScrollableListProps = {
   items: React.ReactNode;
@@ -17,6 +17,11 @@ const DkScrollableList = ({
   gap = 16,
   ...props
 }: DkScrollableListProps) => {
+  // Generate unique ID for this list instance
+  const listId = useMemo(
+    () => `dk-scrollable-list-${Math.random().toString(36).substr(2, 9)}`,
+    [],
+  );
   const listRef = useRef<HTMLDivElement | null>(null);
   const [isScrollable, setIsScrollable] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -60,76 +65,76 @@ const DkScrollableList = ({
   // };
 
   const styles = `
-      section[data-dk="dk-scrollable-list"] {
-        position: relative;
-        width: 100%;
-        max-width: 100%;
-        height: auto;
-        overflow: hidden;
+  section[data-dk="${listId}"] {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  overflow: hidden;
 
-        --slide-spacing: ${gap}px;
-      }
+  --slide-spacing: ${gap}px;
 
-      div[data-dk="dk-scrollable-list-items"] {
-        display: flex;
-        gap: 0;
-        overflow-x: scroll;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
+  div[data-dk="dk-scrollable-list-items"] {
+    display: flex;
+    gap: 0;
+    overflow-x: scroll;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
 
-        /* Hide scrollbar for Chrome, Safari and Opera */
-        &::-webkit-scrollbar {
-          display: none;
-        }
-        /* Hide scrollbar for IE, Edge and Firefox */
-        -ms-overflow-style: none; /* IE and Edge */
-        scrollbar-width: none; /* Firefox */
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    /* Hide scrollbar for IE, Edge and Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
 
-        & > * {
-          scroll-snap-align: start;
-          scroll-margin-left: var(--slide-spacing);
-          margin-left: var(--slide-spacing);
-        }
+    & > * {
+      scroll-snap-align: start;
+      scroll-margin-left: var(--slide-spacing);
+      margin-left: var(--slide-spacing);
+    }
 
-        & > *:last-child {
-          margin-right: var(--slide-spacing);
-        }
-      }
+    & > *:last-child {
+      margin-right: var(--slide-spacing);
+    }
+  }
 
-      .dk-scrollable-list-fade {
-        position: absolute;
-        display: grid;
-        align-items: center;
-        padding-inline: 8px;
-        inset-block: 0px;
-        width: ${fadeSize}px;
-        background: linear-gradient(90deg, ${fadeColor} 0%, rgba(0, 0, 0, 0) 100%);
-        opacity: 1;
-        transition-property: all;
-        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-        transition-duration: 300ms;
-        pointer-events: none;
+  .dk-scrollable-list-fade {
+    position: absolute;
+    display: grid;
+    align-items: center;
+    padding-inline: 8px;
+    inset-block: 0px;
+    width: ${fadeSize}px;
+    background: linear-gradient(90deg, ${fadeColor} 0%, rgba(0, 0, 0, 0) 100%);
+    opacity: 1;
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+    pointer-events: none;
 
-        &.left {
-          left: 0;
-        }
+    &.left {
+      left: 0;
+    }
 
-        &.right {
-          right: 0;
-          justify-items: end;
-          transform: rotate(180deg);
-        }
-        &.hidden {
-          opacity: 0;
-        }
-      }`;
+    &.right {
+      right: 0;
+      justify-items: end;
+      transform: rotate(180deg);
+    }
+    &.hidden {
+      opacity: 0;
+    }
+  }
+}`;
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: styles }} />
 
-      <section data-dk="dk-scrollable-list">
+      <section data-dk={listId}>
         <div ref={listRef} data-dk="dk-scrollable-list-items">
           {items}
         </div>

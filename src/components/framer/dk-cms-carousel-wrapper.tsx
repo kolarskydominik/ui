@@ -357,6 +357,7 @@ export const DkCarousel = ({
   [data-dk="${carouselId}"] {
   position: relative;
   width: 100%;
+  height: 100%;
 
   --slide-size: calc(100% / ${perView});
   --slide-spacing: ${gap}px;
@@ -364,6 +365,7 @@ export const DkCarousel = ({
   [data-dk="dk-carousel-viewport"] {
     width: 100%;
     overflow: hidden;
+    height: 100%;
   }
 
   [data-dk="dk-carousel-slides"] {
@@ -371,12 +373,14 @@ export const DkCarousel = ({
     display: flex;
     touch-action: pan-y pinch-zoom;
     margin-left: calc(var(--slide-spacing) * -1);
+    height: 100%;
   }
 
   [data-dk="dk-carousel-slides"] > * {
     min-width: 0;
     flex: 0 0 var(--slide-size);
     padding-left: var(--slide-spacing);
+    height: 100%;
   }
 
   [data-dk="dk-carousel-slides"] > * > *,

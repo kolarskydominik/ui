@@ -1,5 +1,5 @@
 import useEmblaCarousel from 'embla-carousel-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 type DkCarouselProps = {
   perView: number;
@@ -24,6 +24,11 @@ export const DkCarousel = ({
     topPosition: '50%',
   },
 }: DkCarouselProps) => {
+  // Generate unique ID for this carousel instance
+  const carouselId = useMemo(
+    () => `dk-carousel-${Math.random().toString(36).substr(2, 9)}`,
+    [],
+  );
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: 'start',
     slidesToScroll: perView,
@@ -59,73 +64,78 @@ export const DkCarousel = ({
   }, [emblaApi, onSelect]);
 
   const styles = `
-      [data-dk="dk-carousel"] {
-        position: relative;
-        width: 100%;
+  [data-dk="${carouselId}"] {
+  position: relative;
+  width: 100%;
+  height: 100%;
 
-        --slide-size: calc(100% / ${perView});
-        --slide-spacing: ${gap}px;
-      }
+  --slide-size: calc(100% / ${perView});
+  --slide-spacing: ${gap}px;
 
-      [data-dk="dk-carousel-viewport"] {
-        width: 100%;
-        overflow: hidden;
-      }
+  [data-dk="dk-carousel-viewport"] {
+    width: 100%;
+    overflow: hidden;
+    height: 100%;
+  }
 
-      [data-dk="dk-carousel-slides"] {
-        backface-visibility: hidden;
-        display: flex;
-        touch-action: pan-y pinch-zoom;
-        margin-left: calc(var(--slide-spacing) * -1);
-      }
+  [data-dk="dk-carousel-slides"] {
+    backface-visibility: hidden;
+    display: flex;
+    touch-action: pan-y pinch-zoom;
+    margin-left: calc(var(--slide-spacing) * -1);
+    height: 100%;
+  }
 
-      [data-dk="dk-carousel-slides"] > * {
-        min-width: 0;
-        flex: 0 0 var(--slide-size);
-        padding-left: var(--slide-spacing);
-      }
+  [data-dk="dk-carousel-slides"] > * {
+    min-width: 0;
+    flex: 0 0 var(--slide-size);
+    padding-left: var(--slide-spacing);
+    height: 100%;
+  }
 
-      [data-dk="dk-carousel-slides"] > * > *,
-      [data-dk="dk-carousel-slides"] > * > * > *,
-      [data-dk="dk-carousel-slides"] > * > * > * > * {
-        width: 100% !important;
-        height: 100%;
-      }
+  [data-dk="dk-carousel-slides"] > * > *,
+  [data-dk="dk-carousel-slides"] > * > * > *,
+  [data-dk="dk-carousel-slides"] > * > * > * > * {
+    width: 100% !important;
+    height: 100%;
+  }
 
-      [data-dk="dk-carousel-button"] {
-        all: unset;
-        position: absolute;
-        top: 50%;
-        transform: translateY(-50%);
-        color: black;
-        background-color: white;
-        border: none;
-        border-radius: 50%;
-        width: 44px;
-        height: 44px;
-        aspect-ratio: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        transition: all 0.2s ease-in-out;
+  [data-dk="dk-carousel-button"] {
+    all: unset;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    color: black;
+    background-color: white;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease-in-out;
+  }
 
-        &:hover {
-          background-color: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(3px);
-        }
+  [data-dk="dk-carousel-button"]:hover {
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(3px);
+  }
 
-        &:disabled {
-          visibility: hidden;
-        }
-      }`;
+  [data-dk="dk-carousel-button"]:disabled {
+    visibility: hidden;
+  }
+}
+    `;
 
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: styles }} />
 
-      <div data-dk="dk-carousel">
+      <div data-dk={carouselId}>
         <div
           ref={emblaRef}
           data-dk="dk-carousel-viewport"
